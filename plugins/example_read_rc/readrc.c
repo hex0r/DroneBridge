@@ -30,6 +30,6 @@ int main(int argc, char *argv[]) {
     db_rc_values_t *rc_values = db_rc_values_memory_open();
     while (1){
         printf("CH1 %i\n", rc_values->ch[0]);
-        sleep(1);
+        sleep(0.3);
     }
 }
