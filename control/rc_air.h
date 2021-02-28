@@ -25,11 +25,13 @@
 #define RC_SERIAL_PROT_MAVLINKV1        3
 #define RC_SERIAL_PROT_MAVLINKV2        4
 #define RC_SERIAL_PROT_SUMD             5
+#define RC_SERIAL_PROT_NO_EX_FC         6
 
 extern uint8_t serial_data_buffer[1024]; // write the rc protocol data for the serial port in here! init in rc_air
 
 void conf_rc_serial_protocol_air(int new_rc_protocol, char use_sumd);
 int generate_rc_serial_message(uint8_t *db_rc_protocol);
 void open_rc_rx_shm();
+int add_rc_meta_data(uint16_t rssi,uint16_t recv_pack_sec);
 
 #endif //CONTROL_STATUS_RC_AIR_H

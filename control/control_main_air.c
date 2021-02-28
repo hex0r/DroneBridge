@@ -39,6 +39,7 @@
 #include "../common/db_unix.h"
 
 
+
 #define ETHER_TYPE        0x88ab
 #define UART_IF          "/dev/serial1"
 #define BUF_SIZ                      512    // should be enough?!
@@ -164,6 +165,8 @@ uint8_t send_status_update(uint8_t *status_seq_number, db_socket_t *raw_interfac
         *start_rc = (long) time_check.tv_sec * 1000 + (long) time_check.tv_usec / 1000;
     }
     if ((*rightnow - *start) >= STATUS_UPDATE_TIME) {
+        // update shared SharedMemory
+        add_rc_meta_data( (uint16_t)rssi,(uint16_t)rc_packets_cnt);
         memset(rc_status_update_data, 0xff, 6);
         rc_status_update_data->rssi_rc_uav = rssi;
         rc_status_update_data->recv_pack_sec = *rc_packets_tmp;

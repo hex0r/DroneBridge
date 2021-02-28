@@ -19,12 +19,13 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include "rc_air.h"
+#include "../common/db_common.h"
 #include "../common/db_protocol.h"
 #include "../common/db_crc.h"
 #include "../common/mavlink/c_library_v2/common/mavlink.h"
 #include "../common/shared_memory.h"
-
 
 int serial_rc_protocol, i_rc_air, i_sumd_air, i_rc;
 db_rc_values_t *shm_rc_values = NULL;
@@ -248,14 +249,24 @@ void open_rc_rx_shm(){
     shm_rc_values = db_rc_values_memory_open();
 }
 
+
+
 /**
- * Takes a DroneBridge RC protocol message, checks it and generates a <valid message> to be sent over the serial port.
- * <valid message> protocol is specified via "conf_rc_protocol_air(int protocol)" (MSPv1, MSPv2, MAVLink v1, MAVLink v2)
- * @param db_rc_protocol
- * @return The number of bytes that the message for the serial port has. It depends on the picked serial protocol
+Update rc meta data
  */
+
+int add_rc_meta_data(uint16_t rssi,uint16_t recv_pack_sec){
+  shm_rc_values->rssi = rssi;
+  shm_rc_values->recv_pack_sec = recv_pack_sec;
+  return 0;
+}
+
+
+
 int generate_rc_serial_message(uint8_t *db_rc_protocol){
     if (deserialize_db_rc_protocol(db_rc_protocol) == 1){
+
+
         // adjust RC to 1000-2000 by adding 1000 to every channel received via DB-RC-Protocol
         rc_channels[0] += 1000; rc_channels[1] += 1000; rc_channels[2] += 1000; rc_channels[3] += 1000;
         rc_channels[4] += 1000; rc_channels[5] += 1000; rc_channels[6] += 1000; rc_channels[7] += 1000;
@@ -265,6 +276,8 @@ int generate_rc_serial_message(uint8_t *db_rc_protocol){
         shm_rc_values->ch[3] = rc_channels[3];shm_rc_values->ch[4] = rc_channels[4];shm_rc_values->ch[5] = rc_channels[5];
         shm_rc_values->ch[6] = rc_channels[6];shm_rc_values->ch[7] = rc_channels[7];shm_rc_values->ch[8] = rc_channels[8];
         shm_rc_values->ch[9] = rc_channels[9];shm_rc_values->ch[10] = rc_channels[10];shm_rc_values->ch[11] = rc_channels[11];
+        gettimeofday(&shm_rc_values->last_update, NULL);
+
 
         if (serial_rc_protocol == RC_SERIAL_PROT_MSPV1){
             generate_msp(rc_channels);
@@ -279,7 +292,8 @@ int generate_rc_serial_message(uint8_t *db_rc_protocol){
         else if (serial_rc_protocol == RC_SERIAL_PROT_SUMD) {
             generate_sumd(rc_channels);
             return 29;
-        }
+        }else if (serial_rc_protocol == RC_SERIAL_PROT_NO_EX_FC)
+            return 0;
     }
     return -1;
 }

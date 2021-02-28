@@ -26,6 +26,9 @@
 
 typedef struct {
     uint16_t ch[NUM_CHANNELS];
+    uint16_t rssi;
+    uint16_t recv_pack_sec;
+    struct timeval last_update;
 } __attribute__((packed)) db_rc_values_t;
 
 typedef struct {
